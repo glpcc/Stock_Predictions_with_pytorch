@@ -40,8 +40,8 @@ class SMRNN(nn.Module):
         # Change net3 weights and biases
         i = 0
         for j in range(len(self.net3_weigths)):
-            self.net3_weigths[j] += self.prev_weight_change[i:i+self.net3_weigths[j].size(0)]
-            i += self.net3_weigths[j].size(0)
+            self.net3_weigths[j] += torch.reshape(self.prev_weight_change[i:i+(self.net3_weigths[j].size(0)*self.net3_weigths[j].size(1))],self.net3_weigths[j].size())
+            i += self.net3_weigths[j].size(0)*self.net3_weigths[j].size(1)
 
         i = 0
         for j in range(len(self.net3_biases)):
@@ -67,6 +67,7 @@ class SMRNN(nn.Module):
 
         return x1
 
-net = SMRNN(1,1,3,[4,5,4,2],[6,7,10,20],[2,3,4])
+# net = SMRNN(1,1,3,[4,5,4,2],[6,7,10,20],[2,3,4])
 
-net.forward(torch.tensor([1]))
+# a = net.forward(torch.tensor([1]))
+# print(a)
