@@ -67,7 +67,9 @@ class SMRNN(nn.Module):
 
         return x1
 
-# net = SMRNN(1,1,3,[4,5,4,2],[6,7,10,20],[2,3,4])
+    def clean(self):
+        self.state = torch.zeros_like(self.state )
+        self.prev_output = torch.zeros(self.outputs)
+        self.prev_weight_change = torch.zeros_like(self.prev_weight_change)
+        self.prev_bias_change = torch.zeros_like(self.prev_bias_change)
 
-# a = net.forward(torch.tensor([1]))
-# print(a)
