@@ -18,9 +18,9 @@ from SMRNN import SMRNN
 from torch import optim
 import torch.nn as nn
 # Create the network optimizer and loss function
-net = SMRNN(inputs = 1, outputs = 1, inner_state_size = 5,net1_inner_topology = [10,30,10,5,2], net2_inner_topology = [10,20,50,150],net3_inner_topology = [10,20,7])
+net = SMRNN(inputs = 1, outputs = 1, inner_state_size = 2,net1_inner_topology = [4,5,2], net2_inner_topology = [10],net3_inner_topology = [7])
 optimizer = optim.Adam(net.parameters(),lr=1e-1)
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer,0.8)
+scheduler = optim.lr_scheduler.LinearLR(optimizer,0.1,0.01)
 loss_func = nn.MSELoss()
 
 
@@ -36,12 +36,12 @@ from matplotlib import pyplot
 # train the network (in this case only with the open price)
 epochs = 500
 # the batch sizes will be random to let the model to learn in diferent lengths
-max_batch_size = 30
+max_batch_size = 7
 min_batch_size = 5
 losses = []
 for epoch in range(epochs):
     batch_size = random.randint(5,20)
-    train_index = random.randint(0,train_data.size - max_batch_size - 2)
+    train_index = random.randint(0,train_data.size - max_batch_size - 20)
     # Create the batch and normalize it
     batch = train_data[train_index:train_index+batch_size].copy()
     batch_range = batch.max()-batch.min()
