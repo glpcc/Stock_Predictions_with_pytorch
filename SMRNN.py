@@ -28,7 +28,7 @@ class SMRNN(nn.Module):
             if i != len(net2_inner_topology)-2:
                 self.net2.add_module(f"ReLU {i}", nn.ReLU())
 
-        self.net3_weigths = [torch.zeros(net3_inner_topology[i+1],net3_inner_topology[i]) for i in range(len(net3_inner_topology)-1)]
+        self.net3_weigths = [(torch.rand(net3_inner_topology[i+1],net3_inner_topology[i])-0.5)/100 for i in range(len(net3_inner_topology)-1)]
         self.net3_biases = [torch.zeros(i) for i in net3_inner_topology[1:]]
         self.activation_funtion = nn.ReLU()
 
@@ -79,5 +79,5 @@ class SMRNN(nn.Module):
         self.prev_output = torch.zeros(self.outputs)
         self.prev_weight_change = torch.zeros(self.prev_weight_change.size())
         self.prev_bias_change = torch.zeros(self.prev_bias_change.size())
-        self.net3_weigths = [torch.zeros(i.size()) for i in self.net3_weigths]
+        self.net3_weigths = [(torch.rand(i.size())-0.5)/100 for i in self.net3_weigths]
         self.net3_biases = [torch.zeros(i.size()) for i in self.net3_biases]
