@@ -1,17 +1,16 @@
 # %%
 import pandas as pd
 import pickle
-import random
 from matplotlib import pyplot
 import torch
-
+from progress.bar import Bar
 
 # Load the gpu (in my case it actually runs slower so i turned it off)
 if torch.cuda.is_available():
     device = torch.device('cpu')
 else:
     device = torch.device('cpu')
-
+torch.no_grad()
 
     
 # Load the csv data as a pandas dataframe
@@ -29,27 +28,34 @@ norm_test_data = norm_test_data.float()
 def unnormalize(x, field = 'Open'):
     return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
 
-f = open('nets/FGRNN_best_net_EURUSD_20.obj', 'rb')
+f = open('nets/FGRNN_best_net_EURUSD_40.obj', 'rb')
 net = pickle.load(f)
 net.to(device)
 
 batch_size = 20
-real_open_prices = test_data['Open'].values
+real_open_prices = []
 predicted_prices = []
 
 net.eval()
-epochs = len(norm_test_data) - 2*batch_size - 1
+epochs = len(norm_test_data) - 2*batch_size 
+b = Bar('Generating...',max=epochs)
 for epoch in range(epochs):
     test_index = batch_size + epoch
     for batch_num in range(batch_size):
         inpt = norm_test_data[test_index+batch_num]
         output = net(inpt)
-    predicted_prices.append(unnormalize(output))
+    real_open_prices.append(unnormalize(float(norm_test_data[test_index+batch_size][0])))
+    predicted_prices.append(unnormalize(float(output)))
     net.clean()
+    b.next()
 
-pyplot.plot(list(real_open_prices[batch_size:]))
-pyplot.plot(torch.tensor(predicted_prices))
+
+pyplot.plot(real_open_prices, label='Real Prices')
+pyplot.plot(predicted_prices, label= 'Predicted Prices')
 pyplot.legend()
+pyplot.xlabel('Days')
+pyplot.ylabel('EUR / USD')
+pyplot.title('FGRNN 40 Predicitons')
 pyplot.show()
 
     
