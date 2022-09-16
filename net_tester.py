@@ -14,6 +14,7 @@ else:
     device = torch.device('cpu')
 
 
+    
 # Load the csv data as a pandas dataframe
 eurusd_stock_df = pd.read_csv('datasets/EURUSDX.csv')
 train_data = eurusd_stock_df[['Open','Close','High','Low']][:-1000]
@@ -25,7 +26,11 @@ norm_test_data = torch.tensor(norm_test_data.values)
 norm_test_data = norm_test_data.to(device)
 norm_test_data = norm_test_data.float()
 
-f = open('nets/net8.obj', 'rb')
+# Utility function
+def unnormalize(x, field = 'Open'):
+    return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
+
+f = open('nets/net9.obj', 'rb')
 net: SMRNN = pickle.load(f)
 
 
@@ -37,6 +42,7 @@ tests = 200
 max_test_size = 40
 min_test_size = 40
 losses = []
+actual_losses = []
 net.to(device)
 for epoch in range(tests):
     test_batch_size = 40
@@ -50,10 +56,12 @@ for epoch in range(tests):
     # loss = loss_func(output,expected_out)
     print(loss)
     losses.append(float(loss))
+    actual_losses.append(abs(unnormalize(expected_out) - unnormalize(output)))
     print(f'Predicted: {float(output)}, actual: {float(expected_out)}')
     net.clean()
 
 pyplot.plot(list(range(tests)),losses)
 pyplot.show()
 print(torch.tensor(losses).mean())
+print(torch.tensor(actual_losses).mean())
     

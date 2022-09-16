@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-class SMRNN2(nn.Module):
+class FGRNN(nn.Module):
     def __init__(self, inputs: int, outputs: int, inner_state_size: int, net1_inner_topology: list[int], net2_inner_topology: list[int], net3_inner_topology: list[int]) -> None:
         '''
             See the pdf with the diagram to understand the net nomenclature
@@ -15,27 +15,28 @@ class SMRNN2(nn.Module):
         net1_inner_topology = [inputs + outputs + inner_state_size] + net1_inner_topology + [outputs]
         net2_inner_topology = [inputs + outputs + inner_state_size] + net1_inner_topology + [inner_state_size]
         net3_inner_topology = [inputs + outputs + inner_state_size] + net1_inner_topology + [inner_state_size]
-
+        
+        dropout_prob = 0
         self.net1 = nn.Sequential()
         for i in range(len(net1_inner_topology)-1):
             self.net1.add_module(f"Linear({net1_inner_topology[i]},{net1_inner_topology[i+1]})", nn.Linear(net1_inner_topology[i],net1_inner_topology[i+1]))
             if i != len(net1_inner_topology)-2:
                 self.net1.add_module(f"ReLU {i}", nn.ReLU())
-                self.net1.add_module(f"Dropout {i}", nn.Dropout(0))
+                self.net1.add_module(f"Dropout {i}", nn.Dropout(dropout_prob))
 
         self.net2 = nn.Sequential()
         for i in range(len(net2_inner_topology)-1):
             self.net2.add_module(f"Linear({net2_inner_topology[i]},{net2_inner_topology[i+1]})", nn.Linear(net2_inner_topology[i],net2_inner_topology[i+1]))
             if i != len(net2_inner_topology)-2:
                 self.net2.add_module(f"ReLU {i}", nn.ReLU())
-                self.net2.add_module(f"Dropout {i}", nn.Dropout(0))
+                self.net2.add_module(f"Dropout {i}", nn.Dropout(dropout_prob))
 
         self.net3 = nn.Sequential()
         for i in range(len(net3_inner_topology)-1):
             self.net3.add_module(f"Linear({net3_inner_topology[i]},{net3_inner_topology[i+1]})", nn.Linear(net3_inner_topology[i],net3_inner_topology[i+1]))
             if i != len(net3_inner_topology)-2:
-                self.net3.add_module(f"ReLU {i}", nn.LeakyReLU())
-                self.net3.add_module(f"Dropout {i}", nn.Dropout(0))
+                self.net3.add_module(f"ReLU {i}", nn.ReLU())
+                self.net3.add_module(f"Dropout {i}", nn.Dropout(dropout_prob))
 
         self.state = torch.zeros(inner_state_size)
         self.prev_output = torch.zeros(self.outputs)
@@ -48,8 +49,9 @@ class SMRNN2(nn.Module):
 
         # Calculate net3 output (forget gate)
         x3 = inpt
-        x3 = torch.sigmoid(self.net3(x3))
-        self.state = torch.tanh(x2)*2
+        x3 = torch.tanh(self.net3(x3))
+        self.state = torch.tanh(x2)*x3
+
         # Calculate net1 output
         x1 = inpt
         x1 = self.net1(x1)
