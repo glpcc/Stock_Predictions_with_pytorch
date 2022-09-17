@@ -28,7 +28,7 @@ norm_test_data = norm_test_data.float()
 def unnormalize(x, field = 'Open'):
     return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
 
-f = open('nets/FGRNN_best_net_EURUSD_40.obj', 'rb')
+f = open('nets/LSTM_ best_net_EURUSD_20.obj', 'rb')
 net = pickle.load(f)
 net.to(device)
 

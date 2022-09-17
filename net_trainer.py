@@ -1,10 +1,7 @@
 # %%
 import torch
 import pandas as pd
-from LSTM import LSTM
-from FGRNN import FGRNN
-from SMRNN import SMRNN
-from RNN import SMRNN2
+from models.SMRNN2 import SMRNN
 from torch import optim
 import torch.nn as nn
 import random

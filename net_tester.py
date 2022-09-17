@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 import pickle
-from SMRNN import SMRNN
+from models.SMRNN import SMRNN
 import random
 from matplotlib import pyplot
 import torch

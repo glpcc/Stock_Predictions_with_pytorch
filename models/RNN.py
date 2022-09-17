@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 
-class SMRNN2(nn.Module):
+class RNN(nn.Module):
     def __init__(self, inputs: int, outputs: int, inner_state_size: int, net1_inner_topology: list[int], net2_inner_topology: list[int]) -> None:
         '''
             See the pdf with the diagram to understand the net nomenclature
