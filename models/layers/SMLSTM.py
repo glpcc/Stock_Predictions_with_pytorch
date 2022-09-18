@@ -68,7 +68,7 @@ class SMLSTM(nn.Module):
         gen_bias = input @ self.bgen_input_weights.t() + hidden_state @ self.bgen_hidden_weights.t() + self.bgen_bias
         sm_out = self.sigmoid(input @ gen_inpt_w.t() + hidden_state @ gen_hidden_w.t() + gen_bias)
         self.sm_out = sm_out
-        new_cell_state = fg_vec*cell_state + inptg_vec*cinpt + sm_out
+        new_cell_state = fg_vec*sm_out*cell_state + inptg_vec*cinpt 
         output = out_vec*self.tanh(new_cell_state)
 
         output = self.dropout(output)

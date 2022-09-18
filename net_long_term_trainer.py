@@ -1,8 +1,10 @@
 # %%
 import torch
 import pandas as pd
-from models.SMLSTM_net import SMLSTM_net
+from models.SMRNN import SMRNN
+# from models.SMRNN2 import SMRNN
 from models.LSTM import LSTM
+from models.SMLSTM_net import SMLSTM_net
 from torch import optim
 import torch.nn as nn
 import random
@@ -33,26 +35,34 @@ def unnormalize(x, field = 'Open'):
 # Create the network optimizer and loss function
 inputs = 4
 outputs = 4
-net = LSTM(inputs, outputs, hidden_units = 300)
+#net = SMRNN(inputs, outputs, inner_state_size=10, net1_inner_topology=[20,30,50,20,5,2],net2_inner_topology=[15,20,40,70,100,200],net3_inner_topology=[15,20,15,10])
+net = SMLSTM_net(inputs = 4, outputs = 4, hidden_units = 200)
 optimizer = optim.Adam(net.parameters(),lr=1e-2)
 scheduler = optim.lr_scheduler.LambdaLR(optimizer,lambda epoch: 0.5**epoch)
 
 # train the network (in this case only with the open price)
-epochs = 2000
+epochs = 1000
 # the batch sizes will be random to let the model to learn in diferent lengths
 losses = []
 # net.double()
 net.to(device)
-batch_size = 20
+batch_size = 10
+look_ahead_size = 3
 
 for epoch in range(epochs):
     train_index = random.randint(0,len(train_data)- batch_size - 20)
-    inpt = norm_train_data[train_index]
     loss = []
-    for batch_num in range(batch_size):
+
+    for i in range(batch_size-look_ahead_size):
+        inpt = norm_train_data[train_index + i]
+        output = net(inpt)
+
+    inpt = output
+
+    for batch_num in range(look_ahead_size):
         output = net(inpt) 
         inpt = output
-        loss.append(torch.abs(output-norm_train_data[train_index+batch_num]))
+        loss.append(torch.abs(output-norm_train_data[train_index+batch_size-look_ahead_size+batch_num]))
     
     loss = torch.cat(loss)
     loss = loss.sum()

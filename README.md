@@ -14,7 +14,7 @@ The concept of this type of network was to achieve a network that could learn to
 
 The schema the network followed was this one:
 
-![](SMRNN_diagram.svg)
+![](imgs/SMRNN_diagram.svg)
 
 ## RNN and FGRNN (Forget Gate Recurrrent Neural Network)
 
