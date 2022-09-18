@@ -1,8 +1,8 @@
 # %%
 import pandas as pd
 import pickle
-from models.SMRNN import SMRNN
 import random
+from models.SMLSTM_net import SMLSTM_net
 from matplotlib import pyplot
 import torch
 
@@ -30,8 +30,8 @@ norm_test_data = norm_test_data.float()
 def unnormalize(x, field = 'Open'):
     return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
 
-f = open('nets/net9.obj', 'rb')
-net: SMRNN = pickle.load(f)
+f = open('nets/long_term_learn/net9.obj', 'rb')
+net: SMLSTM_net = pickle.load(f)
 
 
 
@@ -39,25 +39,23 @@ net: SMRNN = pickle.load(f)
 # train the network (in this case only with the open price)
 tests = 200
 # the batch sizes will be random to let the model to learn in diferent lengths
-max_test_size = 40
-min_test_size = 40
 losses = []
 actual_losses = []
 net.to(device)
 for epoch in range(tests):
-    test_batch_size = 40
-    test_index = random.randint(0,len(norm_test_data) - max_test_size - 5)
+    test_batch_size = 20
+    test_index = random.randint(0,len(norm_test_data) - test_batch_size - 5)
     for batch_num in range(test_batch_size):
         inpt = norm_test_data[test_index+batch_num]
         net.eval()
         output = net(inpt)
-    expected_out = norm_test_data[test_index+test_batch_size][0]
+    expected_out = norm_test_data[test_index+test_batch_size]
     loss = torch.abs(expected_out - output)
     # loss = loss_func(output,expected_out)
     print(loss)
-    losses.append(float(loss))
-    actual_losses.append(abs(unnormalize(expected_out) - unnormalize(output)))
-    print(f'Predicted: {float(output)}, actual: {float(expected_out)}')
+    losses.append(float(torch.sum(loss)))
+    actual_losses.append(abs(unnormalize(float(expected_out[0])) - unnormalize(float(output[0][0]))))
+    print(f'Predicted: {float(output[0][0])}, actual: {float(expected_out[0])}')
     net.clean()
 
 pyplot.plot(list(range(tests)),losses)

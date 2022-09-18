@@ -14,7 +14,7 @@ class LSTM(nn.Module):
         self.h_t = torch.zeros(1,hidden_units)
         self.c_t = torch.zeros(1,hidden_units)
 
-        self.lstm_layer = nn.LSTM(input_size=inputs, hidden_size = hidden_units,dropout=0.1)
+        self.lstm_layer = nn.LSTM(input_size=inputs, hidden_size = hidden_units,dropout=0)
         self.lin_layer = nn.Linear(hidden_units, outputs)
 
     def forward(self, inputs):

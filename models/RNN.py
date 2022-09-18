@@ -20,14 +20,14 @@ class RNN(nn.Module):
         for i in range(len(net1_inner_topology)-1):
             self.net1.add_module(f"Linear({net1_inner_topology[i]},{net1_inner_topology[i+1]})", nn.Linear(net1_inner_topology[i],net1_inner_topology[i+1]))
             if i != len(net1_inner_topology)-2:
-                self.net1.add_module(f"ReLU {i}", nn.ReLU())
+                self.net1.add_module(f"ReLU {i}", nn.LeakyReLU())
                 self.net1.add_module(f"Dropout {i}", nn.Dropout(0))
 
         self.net2 = nn.Sequential()
         for i in range(len(net2_inner_topology)-1):
             self.net2.add_module(f"Linear({net2_inner_topology[i]},{net2_inner_topology[i+1]})", nn.Linear(net2_inner_topology[i],net2_inner_topology[i+1]))
             if i != len(net2_inner_topology)-2:
-                self.net2.add_module(f"ReLU {i}", nn.ReLU())
+                self.net2.add_module(f"ReLU {i}", nn.LeakyReLU())
                 self.net2.add_module(f"Dropout {i}", nn.Dropout(0))
 
 
