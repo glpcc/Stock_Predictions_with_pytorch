@@ -16,6 +16,10 @@ The schema the network followed was this one:
 
 ![](imgs/SMRNN_diagram.svg)
 
+### Variations
+
+I made 2 variations of SMRNN for testing, SMRNN2 is one that just uses the Net 2 output as weigths and biases for net3, and SMRNN3 that has learnable parameters as Net 3 weights and biases that sum up with the output of net2 to calculate the Net 3 output.
+
 ## RNN and FGRNN (Forget Gate Recurrrent Neural Network)
 
 This where implementations of the recurrent neural networks units but at a network level, the first with only two networks ( one for calculating the state and another for the output) and the second one with a third layer to act as a sort of forget gate of the state.
@@ -25,3 +29,17 @@ This ones achieved better performance than the SMRNN model but also presented th
 ## LSTM (long sort term memory)
 
 A simple naive implementation of a model with one layer with x lstm units and a linear layer to merge all into the final output
+
+## SMLSTM
+
+A modification of a lstm layer that include generated weights that are used for calculating another forget gate to apply to the cells states.
+
+## Hybrid Model
+
+A model that has a GRU layer, a LSTM layer and finally a SMLSTM layer joined with a linear layer to adapt to the number of inputs.
+
+# RESULTS
+
+Self modifying nets in this training at least, just learned to make the weights change constant or zero and learned as a normal RNN. The best results in predicting next day prices was the LSTM and the Hybrid models although results show that the models learn to almost mimic the last price with little trend prediction.
+
+I tested long term learning with this models, the training consisted on a number of passes through price data and then some passes making the model output its following input and compared to the right prices for later backpropagation. results show than models mostly learn to output the same paramaters and more than 5 look ahead steps result in terrible results. The most promising result was the Hybrid model with 15 learning steps and 5 prediction steps.
