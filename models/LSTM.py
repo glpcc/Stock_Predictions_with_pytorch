@@ -4,9 +4,6 @@ from torch import nn
 
 class LSTM(nn.Module):
     def __init__(self, inputs: int, outputs: int, hidden_units: int ) -> None:
-        '''
-            See the pdf with the diagram to understand the net nomenclature
-        '''
         super().__init__()
         self.inputs = inputs
         self.outputs = outputs

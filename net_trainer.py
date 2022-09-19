@@ -1,7 +1,7 @@
 # %%
 import torch
 import pandas as pd
-from models.SMRNN2 import SMRNN
+from models.Hybrid import Hybrid
 from torch import optim
 import torch.nn as nn
 import random
@@ -30,7 +30,7 @@ def unnormalize(x, field = 'Open'):
     return (x*(train_data[field].max()-train_data[field].min())) + train_data[field].min()
 
 # Create the network optimizer and loss function
-net = LSTM(inputs = 4, outputs = 1, hidden_units = 300)
+net = Hybrid(inputs = 4, outputs = 1, lstm_hidden_units = 50, gru_hidden_units=50, smlstm_hidden_units= 50)
 optimizer = optim.Adam(net.parameters(),lr=1e-2)
 scheduler = optim.lr_scheduler.LambdaLR(optimizer,lambda epoch: 0.5**epoch)
 loss_func = nn.L1Loss()
@@ -38,14 +38,12 @@ loss_func = nn.L1Loss()
 # train the network (in this case only with the open price)
 epochs = 2000
 # the batch sizes will be random to let the model to learn in diferent lengths
-max_batch_size = 20
-min_batch_size = 20
 losses = []
 # net.double()
 net.to(device)
 for epoch in range(epochs):
-    batch_size = 20
-    train_index = random.randint(0,len(train_data)- max_batch_size - 20)
+    batch_size = 40
+    train_index = random.randint(0,len(train_data)- batch_size - 20)
 
     for batch_num in range(batch_size):
         inpt = norm_train_data[train_index+batch_num]

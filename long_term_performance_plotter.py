@@ -32,8 +32,8 @@ net = pickle.load(f)
 net.to(device)
 
 
-batch_size = 10
-look_ahead_size = 3
+batch_size = 30
+look_ahead_size = 5
 real_open_prices = []
 predicted_prices = []
 
@@ -46,13 +46,13 @@ for epoch in range(epochs):
         inpt = norm_test_data[test_index+i]
         output = net(inpt)
 
-    inpt = output
+    inpt = output[0]
 
     for batch_num in range(look_ahead_size):
         output = net(inpt)
-        inpt = output
+        inpt = output[0]
         real_open_prices.append(unnormalize(float(norm_test_data[test_index+batch_size-look_ahead_size+batch_num][0])))
-        predicted_prices.append(unnormalize(float(output[0])))
+        predicted_prices.append(unnormalize(float(output[0][0])))
 
     net.clean()
     b.next()

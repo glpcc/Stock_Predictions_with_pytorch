@@ -5,6 +5,7 @@ from models.SMRNN import SMRNN
 # from models.SMRNN2 import SMRNN
 from models.LSTM import LSTM
 from models.SMLSTM_net import SMLSTM_net
+from models.Hybrid import Hybrid
 from torch import optim
 import torch.nn as nn
 import random
@@ -13,7 +14,7 @@ import math
 
 # Load the gpu (in my case it actually runs slower so i turned it off)
 if torch.cuda.is_available():
-    device = torch.device('cuda:0')
+    device = torch.device('cpu')
 else:
     device = torch.device('cpu')
 
@@ -36,7 +37,7 @@ def unnormalize(x, field = 'Open'):
 inputs = 4
 outputs = 4
 #net = SMRNN(inputs, outputs, inner_state_size=10, net1_inner_topology=[20,30,50,20,5,2],net2_inner_topology=[15,20,40,70,100,200],net3_inner_topology=[15,20,15,10])
-net = SMLSTM_net(inputs = 4, outputs = 4, hidden_units = 200)
+net = Hybrid(inputs = 4, outputs = 4, lstm_hidden_units = 50, gru_hidden_units=50, smlstm_hidden_units= 50)
 optimizer = optim.Adam(net.parameters(),lr=1e-2)
 scheduler = optim.lr_scheduler.LambdaLR(optimizer,lambda epoch: 0.5**epoch)
 
@@ -46,8 +47,8 @@ epochs = 1000
 losses = []
 # net.double()
 net.to(device)
-batch_size = 10
-look_ahead_size = 3
+batch_size = 30
+look_ahead_size = 5
 
 for epoch in range(epochs):
     train_index = random.randint(0,len(train_data)- batch_size - 20)
@@ -57,11 +58,11 @@ for epoch in range(epochs):
         inpt = norm_train_data[train_index + i]
         output = net(inpt)
 
-    inpt = output
+    inpt = output[0]
 
     for batch_num in range(look_ahead_size):
         output = net(inpt) 
-        inpt = output
+        inpt = output[0]
         loss.append(torch.abs(output-norm_train_data[train_index+batch_size-look_ahead_size+batch_num]))
     
     loss = torch.cat(loss)
@@ -70,7 +71,7 @@ for epoch in range(epochs):
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
-    print(f'Predicted: {unnormalize(float(output[0])):.3f}, actual: {unnormalize(float(norm_train_data[train_index+batch_size][0])):.3f}, loss: {float(loss):.3f}')
+    print(f'Predicted: {unnormalize(float(output[0][0])):.3f}, actual: {unnormalize(float(norm_train_data[train_index+batch_size][0])):.3f}, loss: {float(loss):.3f}')
     if epoch % 100 == 99:
         scheduler.step()
         print(scheduler.get_lr())

@@ -28,11 +28,11 @@ norm_test_data = norm_test_data.float()
 def unnormalize(x, field = 'Open'):
     return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
 
-f = open('nets/SMLSTM_best_net_EURUSD_20.obj', 'rb')
+f = open('nets/short_term_learn/Hybrid_best_net_EURUSD_20.obj', 'rb')
 net = pickle.load(f)
 net.to(device)
 
-batch_size = 40
+batch_size = 20
 real_open_prices = []
 predicted_prices = []
 
@@ -55,7 +55,7 @@ pyplot.plot(predicted_prices, label= 'Predicted Prices')
 pyplot.legend()
 pyplot.xlabel('Days')
 pyplot.ylabel('EUR / USD')
-pyplot.title('SMRNN2 20 Predicitons')
+pyplot.title('Hybrid 20 Predicitons')
 pyplot.show()
 
     

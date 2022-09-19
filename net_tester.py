@@ -30,7 +30,7 @@ norm_test_data = norm_test_data.float()
 def unnormalize(x, field = 'Open'):
     return (x*(test_data[field].max()-test_data[field].min())) + test_data[field].min()
 
-f = open('nets/long_term_learn/net9.obj', 'rb')
+f = open('nets/net9.obj', 'rb')
 net: SMLSTM_net = pickle.load(f)
 
 
@@ -49,13 +49,13 @@ for epoch in range(tests):
         inpt = norm_test_data[test_index+batch_num]
         net.eval()
         output = net(inpt)
-    expected_out = norm_test_data[test_index+test_batch_size]
+    expected_out = norm_test_data[test_index+test_batch_size][0]
     loss = torch.abs(expected_out - output)
     # loss = loss_func(output,expected_out)
     print(loss)
     losses.append(float(torch.sum(loss)))
-    actual_losses.append(abs(unnormalize(float(expected_out[0])) - unnormalize(float(output[0][0]))))
-    print(f'Predicted: {float(output[0][0])}, actual: {float(expected_out[0])}')
+    actual_losses.append(abs(unnormalize(float(expected_out)) - unnormalize(float(output[0]))))
+    print(f'Predicted: {float(output[0])}, actual: {float(expected_out)}')
     net.clean()
 
 pyplot.plot(list(range(tests)),losses)
