@@ -16,8 +16,6 @@ class SMRNN(nn.Module):
         net3_inner_topology = [inputs + outputs + inner_state_size] + net1_inner_topology + [inner_state_size]
         net2_inner_topology = [inputs + outputs + inner_state_size] + net1_inner_topology + [sum((net3_inner_topology[j]*net3_inner_topology[j+1] for j in range(len(net3_inner_topology)-1))) + sum(net3_inner_topology[1:])]
         
-        self.net3_inner_topology = net3_inner_topology
-
         self.net1 = nn.Sequential()
         for i in range(len(net1_inner_topology)-1):
             self.net1.add_module(f"Linear({net1_inner_topology[i]},{net1_inner_topology[i+1]})", nn.Linear(net1_inner_topology[i],net1_inner_topology[i+1]))
@@ -32,8 +30,10 @@ class SMRNN(nn.Module):
                 self.net2.add_module(f"ReLU {i}", nn.LeakyReLU())
                 self.net2.add_module(f"Dropout {i}", nn.Dropout(0))
 
-        self.net3_weigths = [(torch.rand(net3_inner_topology[i+1],net3_inner_topology[i])-0.5)/100 for i in range(len(net3_inner_topology)-1)]
-        self.net3_biases = [torch.zeros(i) for i in net3_inner_topology[1:]]
+        self.net3_weigths = [nn.parameter.Parameter((torch.rand(net3_inner_topology[i+1],net3_inner_topology[i])-0.5)/1) for i in range(len(net3_inner_topology)-1)]
+        self.net3_biases = [nn.parameter.Parameter(torch.zeros(i)) for i in net3_inner_topology[1:]]
+        self.net3_weigths = nn.ParameterList(self.net3_weigths)
+        self.net3_biases = nn.ParameterList(self.net3_biases)
         self.activation_funtion = nn.LeakyReLU()
         self.dropout_layer = nn.Dropout(0)
 
@@ -59,11 +59,9 @@ class SMRNN(nn.Module):
         for j in range(len(self.net3_weigths)):
             # Calculate the bias and weight change
             layer_weight_change = torch.reshape(self.prev_weight_change[weight_ind:weight_ind+(self.net3_weigths[j].size(0)*self.net3_weigths[j].size(1))],self.net3_weigths[j].size())
-            layer_bias_change =  self.prev_bias_change[bias_ind:bias_ind+self.net3_biases[j].size(0)]
+            layer_bias_change = self.net3_biases[j] + self.prev_bias_change[bias_ind:bias_ind+self.net3_biases[j].size(0)]
             # Calculate the output
-            self.net3_weigths[j] = self.net3_weigths[j] + layer_weight_change
-            self.net3_biases[j] = self.net3_biases[j] + layer_bias_change
-            x3 = x3 @ self.net3_weigths[j].t() + self.net3_biases[j]
+            x3 = x3 @ (self.net3_weigths[j]+layer_weight_change).t() + (self.net3_biases[j]+layer_bias_change)
             if j != len(self.net3_weigths) - 1:
                 x3 = self.activation_funtion(x3)
                 x3 = self.dropout_layer(x3)
@@ -84,8 +82,6 @@ class SMRNN(nn.Module):
         self.prev_output = self.prev_output.detach()*0
         self.prev_weight_change = self.prev_weight_change.detach()*0
         self.prev_bias_change = self.prev_bias_change.detach()*0
-        self.net3_weigths = [(torch.rand(self.net3_inner_topology[i+1],self.net3_inner_topology[i], device=self.state.device)-0.5)/100 for i in range(len(self.net3_inner_topology)-1)]
-        self.net3_biases = [torch.zeros(i, device=self.state.device) for i in self.net3_inner_topology[1:]]
 
     def to(self, *args, **kwargs):
         self = super().to(*args, **kwargs) 
@@ -93,8 +89,4 @@ class SMRNN(nn.Module):
         self.prev_output = self.prev_output.to(*args, **kwargs) 
         self.prev_weight_change = self.prev_weight_change.to(*args, **kwargs) 
         self.prev_bias_change = self.prev_bias_change.to(*args, **kwargs) 
-        for i in range(len(self.net3_weigths)):
-            self.net3_weigths[i] =  self.net3_weigths[i].to(*args, **kwargs) 
-        for i in range(len(self.net3_biases)):
-            self.net3_biases[i] = self.net3_biases[i].to(*args, **kwargs) 
         return self

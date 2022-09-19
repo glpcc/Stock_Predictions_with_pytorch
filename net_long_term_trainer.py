@@ -10,11 +10,10 @@ from torch import optim
 import torch.nn as nn
 import random
 from matplotlib import pyplot
-import math
 
 # Load the gpu (in my case it actually runs slower so i turned it off)
 if torch.cuda.is_available():
-    device = torch.device('cpu')
+    device = torch.device('cuda:0')
 else:
     device = torch.device('cpu')
 
@@ -36,7 +35,7 @@ def unnormalize(x, field = 'Open'):
 # Create the network optimizer and loss function
 inputs = 4
 outputs = 4
-#net = SMRNN(inputs, outputs, inner_state_size=10, net1_inner_topology=[20,30,50,20,5,2],net2_inner_topology=[15,20,40,70,100,200],net3_inner_topology=[15,20,15,10])
+# net = SMRNN(inputs, outputs, inner_state_size=10, net1_inner_topology=[20,30,50,20,5,2],net2_inner_topology=[15,20,70,100,200],net3_inner_topology=[15,15,10])
 net = Hybrid(inputs = 4, outputs = 4, lstm_hidden_units = 50, gru_hidden_units=50, smlstm_hidden_units= 50)
 optimizer = optim.Adam(net.parameters(),lr=1e-2)
 scheduler = optim.lr_scheduler.LambdaLR(optimizer,lambda epoch: 0.5**epoch)
@@ -47,9 +46,8 @@ epochs = 1000
 losses = []
 # net.double()
 net.to(device)
-batch_size = 30
+batch_size = 20
 look_ahead_size = 5
-
 for epoch in range(epochs):
     train_index = random.randint(0,len(train_data)- batch_size - 20)
     loss = []
@@ -63,7 +61,7 @@ for epoch in range(epochs):
     for batch_num in range(look_ahead_size):
         output = net(inpt) 
         inpt = output[0]
-        loss.append(torch.abs(output-norm_train_data[train_index+batch_size-look_ahead_size+batch_num]))
+        loss.append(torch.abs(output[0]-norm_train_data[train_index+batch_size-look_ahead_size+batch_num]))
     
     loss = torch.cat(loss)
     loss = loss.sum()

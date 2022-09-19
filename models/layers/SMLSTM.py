@@ -64,7 +64,7 @@ class SMLSTM(nn.Module):
 
         gen_hidden_w = input @ self.wgen_hidden_input_weights.t() + hidden_state @ self.wgen_hidden_hidden_weights.t() + self.wgen_hidden_bias
         gen_hidden_w = torch.reshape(gen_hidden_w, (self.hidden_size,self.hidden_size))
-
+        
         gen_bias = input @ self.bgen_input_weights.t() + hidden_state @ self.bgen_hidden_weights.t() + self.bgen_bias
         sm_out = self.sigmoid(input @ gen_inpt_w.t() + hidden_state @ gen_hidden_w.t() + gen_bias)
         self.sm_out = sm_out

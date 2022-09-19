@@ -32,7 +32,7 @@ net = pickle.load(f)
 net.to(device)
 
 
-batch_size = 30
+batch_size = 20
 look_ahead_size = 5
 real_open_prices = []
 predicted_prices = []
